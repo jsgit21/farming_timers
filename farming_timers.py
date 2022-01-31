@@ -31,14 +31,22 @@ window.title("Farming timers")
 icon_path = "D:\\Joe\\PythonWorkspace\\farming_timer_project\\farming_icons\\"
 
 time_now = datetime.datetime.now()
-current_time = time_now.strftime('%I:%M:%S %p')
+current_time = time_now.strftime('%I:%M %p')
 
 
 def update_time():
     time_now = datetime.datetime.now()
-    current_time = time_now.strftime('%I:%M:%S %p')
+    current_time = time_now.strftime('%I:%M %p')
     time_label.config(text=current_time)
-    time_label.after(1000, update_time)
+    time_label.after(60000, update_time)
+
+def flatten_time():
+    time_now = datetime.datetime.now()
+    if time_now.second != 0:
+        time_label.after(1000, flatten_time)
+    else:
+        time_label.config(text=current_time)
+        update_time()
 
 def calc_harvest_time(crop_growtime):
     time_change = datetime.timedelta(minutes=crop_growtime)
@@ -51,7 +59,7 @@ def calc_harvest_time(crop_growtime):
     while harvest_time.minute % 5 != 0 or harvest_time.minute % 10 == 0:
         harvest_time = harvest_time.replace(minute=harvest_time.minute-1)
     
-    return harvest_time.strftime('%I:%M:%S %p')
+    return harvest_time.strftime('%I:%M %p')
 
 def calc_growth_time():
     # Calculate growth elapsed time
@@ -75,7 +83,7 @@ time_label = tk.Label(
 )
 time_label.pack(fill=tk.X)
 time_frame.pack(fill=tk.X)
-time_label.after(1000, update_time)
+time_label.after(10, flatten_time)
 
 # Holding the grid for the allotments
 main_frame = tk.Frame(master = window)
@@ -148,9 +156,9 @@ for i in range(len(allotments)):
         # ---------------- CHILDREN OF btn_frame ---------------- V
         harvest_time_label = tk.Label(
             master = harvest_time_frame,
-            text = "--:--:--",
+            text = "--:--",
             foreground = "grey",
-            width=10,
+            width=8,
             font='ariel 12'
         )
         harvest_time_label.pack(side=tk.LEFT, padx=5, pady=5)
