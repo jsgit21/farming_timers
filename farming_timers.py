@@ -1,9 +1,10 @@
 from ast import Raise
 from asyncio.windows_events import NULL
 from doctest import master
+from textwrap import fill
 import tkinter as tk
 import time as tm
-from turtle import width
+from turtle import back, width
 from PIL import ImageTk, Image
 from functools import partial
 import datetime
@@ -43,11 +44,22 @@ def calc_harvest_time(crop_growtime):
     time_change = datetime.timedelta(minutes=crop_growtime)
     time_now = datetime.datetime.now()
     harvest_time = time_now + time_change
+    harvest_time = harvest_time.replace(second=0)
+    
+    # Round down the harvest time to account for cycles,
+    # My allotment cycles occur every :05 :15 :25 :35 :45 :55
+    while harvest_time.minute % 5 != 0 or harvest_time.minute % 10 == 0:
+        harvest_time = harvest_time.replace(minute=harvest_time.minute-1)
+    
     return harvest_time.strftime('%I:%M:%S %p')
+
+def calc_growth_time():
+    # Calculate growth elapsed time
+    return False
 
 def plant(n):
     btn_name = (btn_list[n])
-    allotments[n]["label_name"].configure(background="red")
+    allotments[n]["label_name"].configure(background="#d12424")
     harvest_time = calc_harvest_time(allotments[n]["value"])
     allotments[n]["harvest_label"].configure(text=harvest_time, font='ariel 12', foreground="black")
 
@@ -57,11 +69,12 @@ time_frame = tk.Frame(master = window)
 time_label = tk.Label(
     master = time_frame, 
     text = current_time,
-    font='ariel 16'
+    font='ariel 16',
+    borderwidth=1,
+    background="#75aaff"
 )
-time_label.pack()
-time_frame.pack()
-
+time_label.pack(fill=tk.X)
+time_frame.pack(fill=tk.X)
 time_label.after(1000, update_time)
 
 # Holding the grid for the allotments
