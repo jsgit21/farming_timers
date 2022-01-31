@@ -1,6 +1,7 @@
 from ast import Raise
 from asyncio.windows_events import NULL
 from doctest import master
+from re import X
 from textwrap import fill
 import tkinter as tk
 import time as tm
@@ -10,14 +11,14 @@ from functools import partial
 import datetime
 
 allotments = [
-    {"name":"Potato", "value":40, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Onion", "value":40, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Cabbage", "value":40, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Tomato", "value":40, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Sweetcorn", "value":60, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Strawberry", "value":60, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Watermelon", "value":80, "label_name":NULL, "harvest_label":NULL},
-    {"name":"Snapegrass", "value":70, "label_name":NULL, "harvest_label":NULL}
+    {"name":"Potato", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Onion", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Cabbage", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Tomato", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Sweetcorn", "value":60, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Strawberry", "value":60, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Watermelon", "value":80, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Snapegrass", "value":70, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL}
 ]
 
 label_dict = {}
@@ -59,17 +60,26 @@ def calc_harvest_time(crop_growtime):
     while harvest_time.minute % 5 != 0 or harvest_time.minute % 10 == 0:
         harvest_time = harvest_time.replace(minute=harvest_time.minute-1)
     
-    return harvest_time.strftime('%I:%M %p')
+    return harvest_time
 
-def calc_growth_time():
-    # Calculate growth elapsed time
-    return False
+def growth_countdown(n, remaining):
+    hmmss = str(remaining).split(":")
+    if hmmss[2] == 0:
+        allotments[n]["remaining_label"].after(1000, )
+
+def calc_growth_time(n, harvest_time):
+    time_now = datetime.datetime.now()
+    remaining_time = harvest_time - time_now
+    allotments[n]["remaining_label"].configure(text=remaining_time, font='ariel 12', foreground="black")
+    growth_countdown(n, remaining_time)
 
 def plant(n):
     btn_name = (btn_list[n])
     allotments[n]["label_name"].configure(background="#d12424")
     harvest_time = calc_harvest_time(allotments[n]["value"])
-    allotments[n]["harvest_label"].configure(text=harvest_time, font='ariel 12', foreground="black")
+    strharvest_time = harvest_time.strftime('%I:%M %p')
+    allotments[n]["harvest_label"].configure(text=strharvest_time, font='ariel 12', foreground="black")
+    calc_growth_time(n, harvest_time)
 
 
 # Holding the time frame
@@ -84,6 +94,23 @@ time_label = tk.Label(
 time_label.pack(fill=tk.X)
 time_frame.pack(fill=tk.X)
 time_label.after(10, flatten_time)
+
+# Holding the titles / column headers
+title_frame = tk.Frame(master = window, background="purple")
+crop_lbl = tk.Label(
+    master = title_frame,
+    text = "Crops",
+    font='ariel 14',
+    width=25
+)
+crop_lbl.pack(side=tk.LEFT)
+crop_lbl = tk.Label(
+    master = title_frame,
+    text = "Harvest",
+    font='ariel 14',
+)
+crop_lbl.pack(side=tk.LEFT)
+title_frame.pack()
 
 # Holding the grid for the allotments
 main_frame = tk.Frame(master = window)
@@ -165,10 +192,20 @@ for i in range(len(allotments)):
 
         # assign label name identifier
         allotments[i]["harvest_label"] = harvest_time_label
+
+        elapsed_time_label = tk.Label(
+            master = harvest_time_frame,
+            text = "--:--",
+            foreground = "grey",
+            width=8,
+            font='ariel 12'
+        )
+        elapsed_time_label.pack(side=tk.LEFT, padx=5, pady=5)
+        allotments[i]["remaining_label"] = elapsed_time_label
         # ---------------- CHILDREN OF btn_frame ---------------- A
 
 
 
-for i in range(len(allotments)):
-    print(allotments[i])
+
+
 window.mainloop()
