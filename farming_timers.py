@@ -9,6 +9,7 @@ from turtle import back, width
 from PIL import ImageTk, Image
 from functools import partial
 import datetime
+import os
 
 allotments = [
     {"name":"Potato", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
@@ -29,19 +30,22 @@ btn_list = []
 window = tk.Tk()
 window.title("Farming timers")
 
-icon_path = "D:\\Joe\\PythonWorkspace\\farming_timer_project\\farming_icons\\"
+cwd = os.getcwd()
+icon_path = cwd + "\\farming_icons\\"
 
 time_now = datetime.datetime.now()
 current_time = time_now.strftime('%I:%M %p')
 
 
 def update_time():
+    # Update time every minute
     time_now = datetime.datetime.now()
     current_time = time_now.strftime('%I:%M %p')
     time_label.config(text=current_time)
     time_label.after(60000, update_time)
 
 def flatten_time():
+    # Wait for time to hit 00 seconds then update every minute
     time_now = datetime.datetime.now()
     if time_now.second != 0:
         time_label.after(1000, flatten_time)
@@ -57,21 +61,27 @@ def calc_harvest_time(crop_growtime):
     
     # Round down the harvest time to account for cycles,
     # My allotment cycles occur every :05 :15 :25 :35 :45 :55
+    one_min = datetime.timedelta(minutes=1)
+
+    # Consider farming offset in minutes (0-15)?
+    offset = 1
     while harvest_time.minute % 5 != 0 or harvest_time.minute % 10 == 0:
-        harvest_time = harvest_time.replace(minute=harvest_time.minute-1)
+        harvest_time = harvest_time - one_min
     
+    harvest_time = harvest_time + (one_min * offset)
     return harvest_time
 
-def growth_countdown(n, remaining):
-    hmmss = str(remaining).split(":")
-    if hmmss[2] == 0:
-        allotments[n]["remaining_label"].after(1000, )
+# def growth_countdown(n, remaining):
+#     sub_sec = datetime.timedelta(seconds=1)
+#     allotments[n]["remaining_label"].config(text=remaining)
+#     if(remaining > datetime.timedelta(minutes=0)):
+#         allotments[n]["remaining_label"].after(1000, growth_countdown(n, remaining-sub_sec))
 
 def calc_growth_time(n, harvest_time):
     time_now = datetime.datetime.now()
     remaining_time = harvest_time - time_now
     allotments[n]["remaining_label"].configure(text=remaining_time, font='ariel 12', foreground="black")
-    growth_countdown(n, remaining_time)
+    # growth_countdown(n, remaining_time)
 
 def plant(n):
     btn_name = (btn_list[n])
@@ -89,28 +99,28 @@ time_label = tk.Label(
     text = current_time,
     font='ariel 16',
     borderwidth=1,
-    background="#75aaff"
+    background="#86d474"
 )
 time_label.pack(fill=tk.X)
 time_frame.pack(fill=tk.X)
 time_label.after(10, flatten_time)
 
-# Holding the titles / column headers
-title_frame = tk.Frame(master = window, background="purple")
-crop_lbl = tk.Label(
-    master = title_frame,
-    text = "Crops",
-    font='ariel 14',
-    width=25
-)
-crop_lbl.pack(side=tk.LEFT)
-crop_lbl = tk.Label(
-    master = title_frame,
-    text = "Harvest",
-    font='ariel 14',
-)
-crop_lbl.pack(side=tk.LEFT)
-title_frame.pack()
+# # Holding the titles / column headers
+# title_frame = tk.Frame(master = window, background="purple")
+# crop_lbl = tk.Label(
+#     master = title_frame,
+#     text = "Crops",
+#     font='ariel 14',
+#     width=25
+# )
+# crop_lbl.pack(side=tk.LEFT)
+# crop_lbl = tk.Label(
+#     master = title_frame,
+#     text = "Harvest",
+#     font='ariel 14',
+# )
+# crop_lbl.pack(side=tk.LEFT)
+# title_frame.pack()
 
 # Holding the grid for the allotments
 main_frame = tk.Frame(master = window)
