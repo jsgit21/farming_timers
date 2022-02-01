@@ -12,14 +12,14 @@ import datetime
 import os
 
 allotments = [
-    {"name":"Potato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Onion", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Cabbage", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Tomato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Sweetcorn", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Strawberry", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Watermelon", "cycles": 8, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Snapegrass", "cycles": 7, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL}
+    {"name":"Potato", "cycles": 1, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Onion", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Cabbage", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Tomato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Sweetcorn", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Strawberry", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Watermelon", "cycles": 8, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False},
+    {"name":"Snapegrass", "cycles": 7, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False}
 ]
 
 label_dict = {}
@@ -54,7 +54,9 @@ def flatten_time():
         update_time()
 
 def calc_harvest_time(crop):
+    # Eventually this offset must be recieved from the user on the GUI (0-15)
     player_offset = 5
+
     offset_mins = datetime.timedelta(minutes=player_offset)
     cycle_time = crop["cycle_time"]
     num_cycles = crop["cycles"]
@@ -86,27 +88,30 @@ def calc_harvest_time(crop):
     #print("harvest_time = plant_time + actual_growtime: " + str(plant_time) + " + " + str(actual_growtime) + " = " + str(harvest_time))
     return harvest_time
 
-# def growth_countdown(n, remaining):
-#     sub_sec = datetime.timedelta(seconds=1)
-#     allotments[n]["remaining_label"].config(text=remaining)
-#     if(remaining > datetime.timedelta(minutes=0)):
-#         allotments[n]["remaining_label"].after(1000, growth_countdown(n, remaining-sub_sec))
-
-def calc_growth_time(n, harvest_time):
+def handle_growth_time(n, harvest_time):
     time_now = datetime.datetime.now()
     time_now = time_now.replace(microsecond=0)
-    remaining_time = harvest_time - time_now
-    allotments[n]["remaining_label"].configure(text=remaining_time, font='ariel 12', foreground="black")
-    # growth_countdown(n, remaining_time)
+
+    if harvest_time >= time_now:
+        remaining_time = harvest_time - time_now
+        allotments[n]["remaining_label"].configure(text=remaining_time, font='ariel 12', foreground="black")
+        allotments[n]["remaining_label"].after(1000, handle_growth_time, n, harvest_time)
+    else:
+        allotments[n]["label_name"].configure(background="#86d474")
+        allotments[n]["active"] = False
+
+        
 
 def plant(n):
     btn_name = (btn_list[n])
-    allotments[n]["label_name"].configure(background="#d12424")
-    harvest_time = calc_harvest_time(allotments[n])
-    harvest_time = harvest_time.replace(microsecond=0) # flatten harvest time
-    strharvest_time = harvest_time.strftime('%I:%M %p')
-    allotments[n]["harvest_label"].configure(text=strharvest_time, font='ariel 12', foreground="black")
-    calc_growth_time(n, harvest_time)
+    if allotments[n]["active"] is False:
+        allotments[n]["active"] = True
+        allotments[n]["label_name"].configure(background="#d12424")
+        harvest_time = calc_harvest_time(allotments[n])
+        harvest_time = harvest_time.replace(microsecond=0) # flatten harvest time
+        strharvest_time = harvest_time.strftime('%I:%M %p')
+        allotments[n]["harvest_label"].configure(text=strharvest_time, font='ariel 12', foreground="black")
+        handle_growth_time(n, harvest_time)
 
 
 # Holding the time frame
@@ -220,15 +225,15 @@ for i in range(len(allotments)):
         # assign label name identifier
         allotments[i]["harvest_label"] = harvest_time_label
 
-        elapsed_time_label = tk.Label(
+        remaining_time_label = tk.Label(
             master = harvest_time_frame,
             text = "--:--",
             foreground = "grey",
             width=8,
             font='ariel 12'
         )
-        elapsed_time_label.pack(side=tk.LEFT, padx=5, pady=5)
-        allotments[i]["remaining_label"] = elapsed_time_label
+        remaining_time_label.pack(side=tk.LEFT, padx=5, pady=5)
+        allotments[i]["remaining_label"] = remaining_time_label
         # ---------------- CHILDREN OF btn_frame ---------------- A
 
 
