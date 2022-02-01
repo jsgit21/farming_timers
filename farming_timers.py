@@ -2,7 +2,6 @@ from ast import Raise
 from asyncio.windows_events import NULL
 from cgitb import reset
 from doctest import master
-from re import X
 from textwrap import fill
 import tkinter as tk
 import time as tm
@@ -12,14 +11,6 @@ from functools import partial
 import datetime
 import os
 
-# name: crop name
-# cycles: number of cycles it takes to fully grow
-# cycle_time: how long each cycle is
-# label_name: reference to the label that holds crop name
-# harvest_label: reference to the label that holds harvest time
-# remaining_label: reference to the label that holds remaining growth time
-# active: defines whether the timer is active already or not, so that it 
-#         cannot be triggered more than once
 allotments = [
     {"name":"Potato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
     {"name":"Onion", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
