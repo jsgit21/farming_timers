@@ -12,14 +12,14 @@ import datetime
 import os
 
 allotments = [
-    {"name":"Potato", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Onion", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Cabbage", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Tomato", "value":40, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Sweetcorn", "value":60, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Strawberry", "value":60, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Watermelon", "value":80, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
-    {"name":"Snapegrass", "value":70, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL}
+    {"name":"Potato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Onion", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Cabbage", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Tomato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Sweetcorn", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Strawberry", "cycles": 6, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Watermelon", "cycles": 8, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL},
+    {"name":"Snapegrass", "cycles": 7, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL}
 ]
 
 label_dict = {}
@@ -53,22 +53,37 @@ def flatten_time():
         time_label.config(text=current_time)
         update_time()
 
-def calc_harvest_time(crop_growtime):
-    time_change = datetime.timedelta(minutes=crop_growtime)
-    time_now = datetime.datetime.now()
-    harvest_time = time_now + time_change
-    harvest_time = harvest_time.replace(second=0)
-    
-    # Round down the harvest time to account for cycles,
-    # My allotment cycles occur every :05 :15 :25 :35 :45 :55
-    one_min = datetime.timedelta(minutes=1)
+def calc_harvest_time(crop):
+    player_offset = 5
+    offset_mins = datetime.timedelta(minutes=player_offset)
+    cycle_time = crop["cycle_time"]
+    num_cycles = crop["cycles"]
 
-    # Consider farming offset in minutes (0-15)?
-    offset = 1
-    while harvest_time.minute % 5 != 0 or harvest_time.minute % 10 == 0:
-        harvest_time = harvest_time - one_min
+    #print("Crop: " + str(crop))
+    crop_growtime = num_cycles*cycle_time
+    #print("crop_growtime: " + str(crop_growtime))
+    time_change = datetime.timedelta(minutes=crop_growtime)
+    plant_time = datetime.datetime.now()
+
+    # Calculate harvest duration
+    adj_plant_time = plant_time + offset_mins
+    #print("adj_plant_time = plant_time + offset_mins: " + str(plant_time) + " + " + str(offset_mins) + " = " + str(adj_plant_time))
+    adj_harvest_time = adj_plant_time + time_change
+    #print("adj_harvest_time = adj_harvest_time + time_change: " + str(adj_harvest_time) + " + " + str(time_change) + " = " + str(adj_harvest_time))
     
-    harvest_time = harvest_time + (one_min * offset)
+    # Round down the harvest time to account for cycles
+    one_min = datetime.timedelta(minutes=1)
+    # cycle_time 10 for allotments :00 :10 :20 :30 :40 :50
+    if cycle_time == 10:
+        while adj_harvest_time.minute % 10 != 0:
+            adj_harvest_time = adj_harvest_time - one_min
+    adj_harvest_time = adj_harvest_time.replace(second=0, microsecond=0)
+    #print("Rounded adj_harvest_time: " + str(adj_harvest_time))
+
+    actual_growtime = adj_harvest_time - adj_plant_time
+    #print("actual_growtime = adj_harvest_time - adj_plant_time: " + str(adj_harvest_time) + " - " + str(adj_plant_time) + " = " + str(actual_growtime))
+    harvest_time = plant_time + actual_growtime
+    #print("harvest_time = plant_time + actual_growtime: " + str(plant_time) + " + " + str(actual_growtime) + " = " + str(harvest_time))
     return harvest_time
 
 # def growth_countdown(n, remaining):
@@ -79,6 +94,7 @@ def calc_harvest_time(crop_growtime):
 
 def calc_growth_time(n, harvest_time):
     time_now = datetime.datetime.now()
+    time_now = time_now.replace(microsecond=0)
     remaining_time = harvest_time - time_now
     allotments[n]["remaining_label"].configure(text=remaining_time, font='ariel 12', foreground="black")
     # growth_countdown(n, remaining_time)
@@ -86,7 +102,8 @@ def calc_growth_time(n, harvest_time):
 def plant(n):
     btn_name = (btn_list[n])
     allotments[n]["label_name"].configure(background="#d12424")
-    harvest_time = calc_harvest_time(allotments[n]["value"])
+    harvest_time = calc_harvest_time(allotments[n])
+    harvest_time = harvest_time.replace(microsecond=0) # flatten harvest time
     strharvest_time = harvest_time.strftime('%I:%M %p')
     allotments[n]["harvest_label"].configure(text=strharvest_time, font='ariel 12', foreground="black")
     calc_growth_time(n, harvest_time)
