@@ -21,7 +21,7 @@ import os
 # active: defines whether the timer is active already or not, so that it 
 #         cannot be triggered more than once
 allotments = [
-    {"name":"Potato", "cycles": 1, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
+    {"name":"Potato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
     {"name":"Onion", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
     {"name":"Cabbage", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
     {"name":"Tomato", "cycles": 4, "cycle_time":10, "label_name":NULL, "harvest_label":NULL, "remaining_label":NULL, "active":False, "reset":False},
